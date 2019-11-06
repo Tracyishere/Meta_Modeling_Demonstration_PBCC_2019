@@ -1,0 +1,12 @@
+numpy
+scipy
+matplotlib
+dill
+pandas
+arviz
+patsy
+mkl-service
+theano
+graphviz
+pymc3
+pdf2image

@@ -11,7 +11,7 @@ dependencies:
     - theano
     - patsy
     - arviz
-    - graphviz
+    - python-graphviz
     - pymc3
     - pdf2image
     - joblib

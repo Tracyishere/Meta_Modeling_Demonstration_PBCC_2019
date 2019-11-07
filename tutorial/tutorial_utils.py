@@ -41,13 +41,8 @@ def get_prior_samples(m, rvname, samples=500):
     :return: prior samples for the RV
     """
 
-    if not m.name:
-        varname = rvname
-    else:
-        varname = m.name + "_" + rvname
-
     rvlist = m.basic_RVs
-    rv = [x for x in rvlist if x.name==varname][0]
+    rv = [x for x in rvlist if x.name==rvname][0]
 
     return rv.distribution.random(size=samples)
 

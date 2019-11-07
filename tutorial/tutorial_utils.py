@@ -8,7 +8,7 @@ import pymc3 as pm
 
 OUTDIR = os.path.abspath("./dump")
 
-def visualize_model(m, prefix=None):
+def visualize_model(m, prefix=None, h=500, w=500):
     """
     Visualize the PGM for a model in plate notation
 
@@ -24,8 +24,9 @@ def visualize_model(m, prefix=None):
     img = convert_from_path(prefix+".pdf")
     img[0].save(prefix+".png")
     os.remove(prefix+".pdf")
-    display(Image(prefix+".png"))
-
+    img = Image(prefix+".png", height=h, width=w)
+    display(img)
+    
 
 def get_prior_samples(m, rvname, samples=500):
     """

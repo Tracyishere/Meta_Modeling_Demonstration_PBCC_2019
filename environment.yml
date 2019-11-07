@@ -16,3 +16,4 @@ dependencies:
     - pdf2image
     - joblib
     - seaborn
+    - poppler

@@ -7,6 +7,8 @@ from IPython.display import Image, display
 import pymc3 as pm
 
 OUTDIR = os.path.abspath("./dump")
+if not os.path.isdir(OUTDIR):
+    os.mkdir(OUTDIR)
 
 def visualize_model(m, prefix=None, h=500, w=500):
     """

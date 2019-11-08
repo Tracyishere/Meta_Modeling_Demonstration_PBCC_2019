@@ -1,4 +1,7 @@
-## Probabilistic meta-modeling tutorial for the PBC Retreat at Catalina 2019.
+# Probabilistic meta-modeling tutorial for PBC (Pancreatic Beta Cell Consortium) Retreat
+
+#### Catalina, CA
+#### Nov, 2019
 
 ## [![License: GPL v2](https://img.shields.io/badge/License-GPL%20v2-blue.svg)](https://www.gnu.org/licenses/old-licenses/gpl-2.0.en.html)
 

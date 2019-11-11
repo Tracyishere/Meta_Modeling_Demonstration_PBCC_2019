@@ -32,24 +32,6 @@ def visualize_model(m, prefix=None, h=500, w=500):
     display(img)
 
 
-@register_cell_magic
-def set_cell_background(color, cell):
-    """
-    Sets the background color of a notebook cell
-    
-    :param color: desired background color
-    """ 
-    
-    script = (
-        "var cell = this.closest('.jp-CodeCell');"
-        "var editor = cell.querySelector('.jp-Editor');"
-        "editor.style.background='{}';"
-        "this.parentNode.removeChild(this)"
-    ).format(color)
-
-    display(HTML('<img src onerror="{}">'.format(script)))
-
-
 def get_prior_samples(m, rvname, samples=500):
     """
     Collect samples for a random variable from the model prior

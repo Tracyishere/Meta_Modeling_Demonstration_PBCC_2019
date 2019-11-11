@@ -1,12 +1,14 @@
 import os
 import numpy as np
 import scipy.stats as stats
+
 from pdf2image import convert_from_path
-from IPython.display import Image, display
+from IPython.display import HTML, Image, display
+from IPython.core.magic import register_cell_magic
 
 import pymc3 as pm
 
-OUTDIR = os.path.abspath("./dump")
+OUTDIR = os.path.abspath("./.tutorial_dump")
 if not os.path.isdir(OUTDIR):
     os.mkdir(OUTDIR)
 
@@ -28,7 +30,25 @@ def visualize_model(m, prefix=None, h=500, w=500):
     os.remove(prefix+".pdf")
     img = Image(prefix+".png", height=h, width=w)
     display(img)
+
+
+@register_cell_magic
+def set_cell_background(color, cell):
+    """
+    Sets the background color of a notebook cell
     
+    :param color: desired background color
+    """ 
+    
+    script = (
+        "var cell = this.closest('.jp-CodeCell');"
+        "var editor = cell.querySelector('.jp-Editor');"
+        "editor.style.background='{}';"
+        "this.parentNode.removeChild(this)"
+    ).format(color)
+
+    display(HTML('<img src onerror="{}">'.format(script)))
+
 
 def get_prior_samples(m, rvname, samples=500):
     """

@@ -1,6 +1,6 @@
 **__pycache__/
 **.DS_Store
 **.so
-**.ipynb.checkpoints/
+.ipynb.checkpoints/
 **.idea/
-./tutorial/dump
+.tutorial_dump/

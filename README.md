@@ -1,4 +1,4 @@
-# Probabilistic meta-modeling tutorial for PBC (Pancreatic Beta Cell Consortium) Retreat
+# Probabilistic Meta-Modeling Demonstration
 
 #### Catalina, CA, Nov, 2019
 
@@ -8,6 +8,6 @@
 
 Meta-modeling is a (for now) stand-in name for a unique probabilistic computational framework that can couple different simulation models at different length and time scales (and of different types) to study the interdepency of the parameters and degrees of freedom of each model. As a candidate system for applying this novel methodology, we look at the process of coupling different models of the pancreatic beta cell to develop a harmonized insight into cellular processes. In principle this framework should allow us to couple models of the cell that are very different from each other, e.g. systems-biology types of models (PK/PD) with molecular simulation models (particle simulators like Brownian dynamics) and the coupling framework should be agonistic to the spatio-temporal scale separations between the input models. While we aren't quite there yet, we present an implementation of meta-modeling using toy models of the pancreatic beta cell. 
 
-The framework is powered by the probabilistic programming language [PyMC3](https://docs.pymc.io) and this repository contains a small tutorial (a jupyter notebook) that takes you step-by-step from building probabilistic models, to coupling them and eventually a live demonstration of coupling two simple models relevant to beta cell biology. This tutorial was presented at the [Pancreatic Beta Cell Consortium](https://www.pbcconsortium.org/) retreat, organized at Catalina in Nov. 2019.
+The framework is powered by the probabilistic programming language [PyMC3](https://docs.pymc.io) and this repository contains a tutorial (a jupyter notebook) that takes you step-by-step from building probabilistic models, to coupling them and eventually a live demonstration of coupling two simple models relevant to beta cell biology. This tutorial was presented at the [Pancreatic Beta Cell Consortium](https://www.pbcconsortium.org/) retreat, organized at Catalina in Nov. 2019.
 
 The tutorial is self-contained in the notebook ```index.ipynb``` . Data and parameters used to run the notebook can be found in ```datasets```. To launch a binder image of this repository and interact with the notebook from your browser, please click the ```launch tutorial``` badge above. 

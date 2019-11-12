@@ -10,6 +10,7 @@ from mm.utils import set_hp, set_input, set_default_sigma
 # timestep (in mins)
 dt = 2.0
 
+
 # Time evolution functions
 # -----------------------------------
 # These are the "forward models" for the corresponding GaussianTimeSeries CPDs
@@ -167,10 +168,10 @@ def MealModel(inputs={}, evidence={}, start={}, t=2,
     # distributions with small sigma anyway
     # -----------------------------------------------------------------
     # G
-    G = pm.Normal("G", mu=State[:,0], sigma=0.001, shape=t)
+    G = pm.Normal("G", mu=State[:, 0], sigma=0.001, shape=t)
 
     # I
-    I = pm.Normal("I", mu=State[:,2], sigma=0.001, shape=t)
+    I = pm.Normal("I", mu=State[:, 2], sigma=0.001, shape=t)
 
     # S
     Y = State[:, 1]

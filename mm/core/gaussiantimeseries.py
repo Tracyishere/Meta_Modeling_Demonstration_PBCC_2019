@@ -344,7 +344,7 @@ class GaussianTimeSeries(Continuous):
         # assemble dynamic parents
         for p in self.dynamic:
             # draw a single parent value
-            var = self._draw_from_parents(p, point=point, size=1)[0]
+            var = self._draw_from_parents(p, point=point, size=2)[0]
             # add past values
             timeslices = p["timeslices"]
             if 0 in timeslices:

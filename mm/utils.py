@@ -1,5 +1,7 @@
 import os
 import json
+import numpy as np
+import scipy.stats as stats
 
 def set_default_sigma(mu):
     """
@@ -126,3 +128,38 @@ def set_start(rvname, modelname, hpfn):
     out = hpdict.get(queryname, 0.0)
 
     return out
+
+
+def get_distribution(samples, vartype="static", smooth=True):
+    """
+    Convert samples into a distribution.
+
+    :param samples: samples
+
+    :param vartype: "static" (non-arrays) or "dynamic"
+
+    :return: bin-centers and bin-values for the corresponding histogram
+    """
+
+    if vartype == "static":
+        if not smooth:
+            y, bin_edges = np.histogram(samples, bins=20, density=True)
+            x = [0.5 * (bin_edges[i] + bin_edges[i + 1]) for i in range(len(y))]
+        else:
+            smin, smax = np.min(samples), np.max(samples)
+            width = smax - smin
+            x = np.linspace(smin, smax, 100)
+            y = stats.gaussian_kde(samples)(x)
+            x = np.concatenate([[x[0] - 3 * width], x, [x[-1] + 3 * width]])
+            y = np.concatenate([[0], y, [0]])
+
+        return x, y
+
+    elif vartype == "dynamic":
+        y = np.mean(samples, axis=0)
+        yerr = np.std(samples, axis=0, ddof=1)
+        return y, yerr
+
+    else:
+        raise TypeError("Unknown variable type. Use 'static' or 'dynamic' ")
+

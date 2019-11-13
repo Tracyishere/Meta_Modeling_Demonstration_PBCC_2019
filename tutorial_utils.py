@@ -16,7 +16,7 @@ if not os.path.isdir(OUTDIR):
 
 def toggle_code():
     """
-    Small html code that toggles (show/hide) code-cells in the notebook.
+    HTML script that toggles (show/hide) code-cells in the notebook.
 
     :return: html code that executes the toggle
     """

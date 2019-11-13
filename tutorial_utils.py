@@ -1,5 +1,6 @@
 import os
 import numpy as np
+import random
 import scipy.stats as stats
 
 from pdf2image import convert_from_path
@@ -11,6 +12,27 @@ import pymc3 as pm
 OUTDIR = os.path.abspath("./.tutorial_dump")
 if not os.path.isdir(OUTDIR):
     os.mkdir(OUTDIR)
+
+
+def toggle_code():
+    """
+    Small html code that toggles (show/hide) code-cells in the notebook.
+
+    :return: html code that executes the toggle
+    """
+
+    html_str = """
+<script>
+    function toggle() {
+        $('div.cell.code_cell.rendered.selected').find("div.input").toggle();
+    }
+</script>
+<form action="javascript:toggle()">
+    <input type="submit" value="Toggle (show/hide) code.">
+</form>
+    """
+    return HTML(html_str)
+
 
 def visualize_model(m, prefix=None, h=500, w=500):
     """

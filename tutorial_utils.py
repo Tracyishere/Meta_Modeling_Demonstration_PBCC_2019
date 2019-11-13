@@ -12,28 +12,8 @@ import pymc3 as pm
 OUTDIR = os.path.abspath("./.tutorial_dump")
 if not os.path.isdir(OUTDIR):
     os.mkdir(OUTDIR)
-
-
-def toggle_code():
-    """
-    HTML script that toggles (show/hide) code-cells in the notebook.
-
-    :return: html code that executes the toggle
-    """
-
-    html_str = """
-<script>
-    function toggle() {
-        $('div.cell.code_cell.rendered.selected').find("div.input").toggle();
-    }
-</script>
-<form action="javascript:toggle()">
-    <input type="submit" value="Toggle (show/hide) code.">
-</form>
-    """
-    return HTML(html_str)
-
-
+    
+    
 def visualize_model(m, prefix=None, h=500, w=500):
     """
     Visualize the PGM for a model in plate notation

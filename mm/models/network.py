@@ -61,7 +61,9 @@ def NetworkModel(inputs={}, evidence={}, start={}, t=2,
     """
     Simple network model that coarse-grains the glycolytic, mitochondrial
     and GLP-1 mediated cAMP pathways to produce a feedback-less network
-    connecting input cellular glucose input to insulin secretion.
+    connecting input cellular glucose input to insulin secretion. This model
+    is a coarse-grained version of the INSULIN SECRETION KEGG pathway
+    (https://www.kegg.jp/kegg-bin/highlight_pathway?scale=1.0&map=map04911&keyword=insulin)
 
     The basic equations (time discretized ODEs) are:
     ATP(t+1) = w1*ATP(t) + w2*PFK_activity*G_in(t)

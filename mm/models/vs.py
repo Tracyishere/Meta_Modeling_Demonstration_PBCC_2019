@@ -31,8 +31,8 @@ def VirtualScreenModel(inputs={}, evidence={}, start={}, t=2,
     """
     Simple linear regression model for GLP1R concentration dependent on
     binding affinity to GLP1 analogs and the analog concentration. The binding
-    affinity is assumed to be presented as a z_score derived from a docking
-    calculation.
+    affinity is assumed to be presented as a z_score derived from docking and
+    free energy calculations.
 
     The basic equation (time discretized ODEs) is:
     conc(t+1) = w1*analog_conc(t)

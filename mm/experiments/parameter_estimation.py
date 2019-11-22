@@ -1,9 +1,28 @@
 """
-Refine / estimate parameters before and after meta-modeling using
-only two input models: the meal and spt models. Compares prior and posterior
-estimates of parameters for normal (healthy) and t2d (type-2 diabetic) cases.
+This script provides a demonstration of estimating and refining parameters
+from input models through probabilistic meta-modeling. To keep things simple,
+only two input models are considered here:
 
-Tanmoy Sanyal, Sali lab
+1) A macroscopic PK/PD model of how a glucose rich meal stimulates insulin
+secretion at the organ (pancreas) level, referred to in the code as the
+"meal model".
+
+2) A toy realization of a Brownian Dynamics simulation of glucose attachment to
+insulin vesicles that initiates their transport. While the actual stuff is a
+many-body particle simulator, the version contained here assumes that we can
+approximate the dynamics using simple linear gaussian forward models. This
+model is referred to in the code as the "spt" (spatio-temporal) model.
+
+For more details on these models please look at the doc strings of the model
+functions in the ../models subfolder.
+
+This script compares prior and posterior estimates of parameters for
+normal (healthy) and t2d (type-2 diabetic) cases.
+
+USAGE: python parameter_estimation.py -h will show you the different arguments
+that the script needs.
+
+Author :Tanmoy Sanyal, Sali lab
 """
 
 import os

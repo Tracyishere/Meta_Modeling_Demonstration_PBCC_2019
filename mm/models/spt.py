@@ -40,7 +40,8 @@ def SPTModel(inputs={}, evidence={}, start={}, t=2,
     (SP)tio-(T)emporal model representing a simplified version of a Brownian
     Dynamics simulation in a toy model of the beta cell. Rate of secretion of
     insulin granlues (ISG)s from the cell per unit time is simply a linear
-    gaussian combination of the model parameters.
+    gaussian combination of the model parameters. Hence, this is a toy
+    realization of what is actually a many-body particle solver. 
 
     The basic equations (time discretized ODEs) are:
     S(t+1) = w1*S(t) + w2*G_in(t) + w3*k + w4*Npatch + w5*Nisg + w6*Ninsulin +

@@ -90,9 +90,10 @@ def MetaModel(name="meta", t=100,
     # construct the first coupler (a modified inputs for the spt model)
     # intracellular glucose ~ 50% of extracellular glucose # assumption
     spt_inputs = {"G_in": 0.5 * meal.G}
+    inputs.update(spt_inputs)
 
     # call the spt model MBF and pass in the first coupler
-    spt = SPTModel(name="spt", t=t, inputs=spt_inputs, evidence=evidence,
+    spt = SPTModel(name="spt", t=t, inputs=inputs, evidence=evidence,
                    start=start, hpfn=hpfn)
 
     # combine (average) the plasma insulin (I) from meal and spt models

@@ -42,20 +42,22 @@
     "GLP1_activity": 12.50,
     "sigma_ATP": 0.33,
     "sigma_cAMP": 0.01,
+    "sigma_GLP1": 1.00,
+    "sigma_GLP1R": 0.01,
     "sigma_Ca": 0.01,
     "sigma_S": 3.40,
     "sigma_I": 2.50,
     "ATP_0": 3.30,
     "GLP1_0": 12.50,
-    "GLP1R_0": 1.00,
     "cAMP_0": 1.3e-3,
-    "S_0": 34.00,
+    "Ca_0": 1e-4,
     "I_0": 25.00
   },
   "vs": {
     "analog_z_score": 0.50,
     "sigma_analog_conc": 0.01,
     "analog_conc_0": 1.00,
-    "GLP1R_0": 0.50
+    "GLP1R_0": 1.00,
+    "sigma_GLP1R": 0.01
   }
 }

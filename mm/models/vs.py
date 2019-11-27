@@ -22,7 +22,7 @@ def _f_analog_conc(analog_conc_0):
 def _f_GLP1R(analog_conc_1, analog_z_score):
     w2 = 1.2
     w3 = 1.2
-    return w1*analog_conc_1 + w2*analog_z_score
+    return w2*analog_conc_1 + w3*analog_z_score
 
 
 @jit
@@ -51,8 +51,9 @@ def VirtualScreenModel(inputs={}, evidence={}, start={}, t=2,
     :param inputs: dictionary containing possible inputs to the system.
     This should at least contain:
     a) analog_z_score (assumed to be obtained from a docking calculation
-    between the analog and GLP1R. Higher scores indicate higher binding
-    affinity)
+    between the analog and GLP1R). This score is relative to GLP1. Higher scores
+    indicate higher binding affinity than GLP1 and a score of 0 means the
+    incretin is effectively GLP1.
     NOTE: If not given, arbitrary values will be assigned.
 
     :param evidence: dict containing evidence (specify at compile time)
@@ -73,9 +74,10 @@ def VirtualScreenModel(inputs={}, evidence={}, start={}, t=2,
     # dynamic parents (no static parents)
     dp = {"node": "me", "timeslices": 0}
     sigma_analog_conc = set_hp("sigma_analog_conc", name, hpfn)
-    analog_conc = GaussianTimeSeries("analog_conc", dynamic=dp, static=[],
-                                     fwd_model=_f_analog_conc,
-                                     sigma=sigma_analog_conc, t=t)
+    analog_conc_prior = GaussianTimeSeries("analog_conc_prior", dynamic=dp,
+                                    static=[], fwd_model=_f_analog_conc,
+                                    sigma=sigma_analog_conc, t=t)
+    analog_conc = set_input("analog_conc", inputs, prior=analog_conc_prior)
 
     # GLP1R
     # -----------------------------------
@@ -93,5 +95,5 @@ def VirtualScreenModel(inputs={}, evidence={}, start={}, t=2,
     # (use standard PyMC3 RV algebra since no dependence on past timesteps)
     sigma_GLP1R = set_hp("sigma_GLP1R", name, hpfn)
     GLP1R = pm.Normal("GLP1R", mu=_f_GLP1R(analog_conc, analog_z_score),
-                      sigma=sigma_GLP1R)
+                      sigma=sigma_GLP1R, shape=t)
 

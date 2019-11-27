@@ -25,10 +25,10 @@ def _f_GLP1(GLP1_0):
     return w3*GLP1_0
 
 
-def _f_GLP1R(GLP1_ext_1, GLP1_1, GLP1_activity):
+def _f_GLP1R(GLP1R_ext_1, GLP1_1, GLP1_activity):
     w4 = 0.5
     w5 = 0.5
-    return w4*GLP1_ext_1 + (w5/GLP1_activity)*GLP1_1
+    return w4*GLP1R_ext_1 + (w5/GLP1_activity)*GLP1_1
 
 
 def _f_cAMP(cAMP_0, ATP_0, GLP1R_0):
@@ -68,7 +68,7 @@ def NetworkModel(inputs={}, evidence={}, start={}, t=2,
     The basic equations (time discretized ODEs) are:
     ATP(t+1) = w1*ATP(t) + w2*PFK_activity*G_in(t)
     GLP1(t+1) = w3*GLP1(t)
-    GLP1R(t) = w4*GLP1_ext(t) + (w5/GLP1_activity) * GLP1(t)
+    GLP1R(t) = w4*GLP1R_ext(t) + (w5/GLP1_activity) * GLP1(t)
     cAMP(t+1) = w6*cAMP(t) + w7*ATP(t) + w8*GLP1R(t)
     Ca(t+1) = w9*Ca(t) + w10*cAMP(t)
     S(t) = w11*Ca(t)
@@ -116,9 +116,8 @@ def NetworkModel(inputs={}, evidence={}, start={}, t=2,
     # (set a dummy prior in case this is treated as evidence)
     PFK_activity_default = set_hp("PFK_activity", name, hpfn)
     PFK_activity_prior = pm.Normal("PFK_activity_prior",
-                                   mu=PFK_activity_default,
-                                   sigma=set_default_sigma(
-                                       PFK_activity_default))
+                                mu=PFK_activity_default,
+                                sigma=set_default_sigma(PFK_activity_default))
     PFK_activity = set_input("PFK_activity", inputs, prior=PFK_activity_prior)
 
     # ATP
@@ -151,17 +150,16 @@ def NetworkModel(inputs={}, evidence={}, start={}, t=2,
     # (set a dummy prior in this case this is treated as evidence)
     GLP1_activity_default = set_hp("GLP1_activity", name, hpfn)
     GLP1_activity_prior = pm.Normal("GLP1_activity_prior",
-                                   mu=GLP1_activity_default,
-                                   sigma=set_default_sigma(
-                                       GLP1_activity_default))
+                                mu=GLP1_activity_default,
+                                sigma=set_default_sigma(GLP1_activity_default))
     GLP1_activity = set_input("GLP1_activity", inputs,
                               prior=GLP1_activity_prior)
 
     # GLP1R
     # (use standard PyMC3 RV algebra since no dependence on past timesteps)
     sigma_GLP1R = set_hp("sigma_GLP1R", name, hpfn)
-    GLP1R = pm.Normal("GLP1R", mu=_f_GLP1R(GLP1_ext, GLP1, GLP1_activity),
-                      sigma=sigma_GLP1R)
+    GLP1R = pm.Normal("GLP1R", mu=_f_GLP1R(GLP1R_ext, GLP1, GLP1_activity),
+                      sigma=sigma_GLP1R, shape=t)
 
     # cAMP CPD
     # -----------------------------------
@@ -186,7 +184,7 @@ def NetworkModel(inputs={}, evidence={}, start={}, t=2,
     # -----------------------------------
     # (use standard PyMC3 RV algebra since no dependence on past timesteps)
     sigma_S = set_hp("sigma_S", name, hpfn)
-    S = pm.Normal("S", mu=_f_S(Ca), sigma=sigma_S)
+    S = pm.Normal("S", mu=_f_S(Ca), sigma=sigma_S, shape=t)
 
     # I CPD
     # -----------------------------------

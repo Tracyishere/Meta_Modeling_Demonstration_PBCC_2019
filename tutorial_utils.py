@@ -12,8 +12,8 @@ import pymc3 as pm
 OUTDIR = os.path.abspath("./.tutorial_dump")
 if not os.path.isdir(OUTDIR):
     os.mkdir(OUTDIR)
-    
-    
+
+
 def visualize_model(m, prefix=None, h=500, w=500):
     """
     Visualize the PGM for a model in plate notation
@@ -27,10 +27,10 @@ def visualize_model(m, prefix=None, h=500, w=500):
     prefix = os.path.join(OUTDIR, prefix)
     pm.model_to_graphviz(m).render(prefix)
     os.remove(prefix)
-    img = convert_from_path(prefix+".pdf")
-    img[0].save(prefix+".png")
-    os.remove(prefix+".pdf")
-    img = Image(prefix+".png", height=h, width=w)
+    img = convert_from_path(prefix + ".pdf")
+    img[0].save(prefix + ".png")
+    os.remove(prefix + ".pdf")
+    img = Image(prefix + ".png", height=h, width=w)
     display(img)
 
 
@@ -48,7 +48,7 @@ def get_prior_samples(m, rvname, samples=500):
     """
 
     rvlist = m.basic_RVs
-    rv = [x for x in rvlist if x.name==rvname][0]
+    rv = [x for x in rvlist if x.name == rvname][0]
 
     return rv.distribution.random(size=samples)
 
@@ -95,12 +95,12 @@ def get_distribution(samples, vartype="static", smooth=False):
             x = np.concatenate([[x[0] - 3 * width], x, [x[-1] + 3 * width]])
             y = np.concatenate([[0], y, [0]])
 
-        return x,y
+        return x, y
 
-    elif vartype=="dynamic":
+    elif vartype == "dynamic":
         y = np.mean(samples, axis=0)
         yerr = np.std(samples, axis=0, ddof=1)
-        return y,yerr
+        return y, yerr
 
     else:
         raise TypeError("Unknown variable type. Use 'static' or 'dynamic' ")

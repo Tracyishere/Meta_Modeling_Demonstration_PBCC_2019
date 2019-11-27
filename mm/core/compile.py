@@ -4,13 +4,12 @@ and starting values just when the model is compiled. Extends the "sampled"
 decorator by Colin Caroll. (https://github.com/ColCarroll/sampled)
 """
 
-import copy as copy
 from functools import wraps
-import pymc3 as pm
+from pymc3 import Model
 from .gaussiantimeseries import GaussianTimeSeries
 
 
-class CompiledModel(pm.Model):
+class CompiledModel(Model):
     """
     Compiles the model.
     a) Stores observed variables until the model is created. Observations are

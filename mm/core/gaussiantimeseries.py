@@ -115,7 +115,7 @@ class GaussianTimeSeries(Continuous):
             elif dim > 1:
                 shape = (t, dim)
         elif isinstance(dim, tuple):
-            shape = (t, ) + dim
+            shape = (t,) + dim
         else:
             raise ValueError("dim %s can only be int or tuple" % str(dim))
         kwargs["shape"] = shape
@@ -279,7 +279,6 @@ class GaussianTimeSeries(Continuous):
         # the first value of the sequence)
         return self.init.logp(x[0]) + tt.sum(innov_like)
 
-
     def _draw_from_parents(self, parent, point=None, size=None):
         """
         A wrapper over PyMC3's distribution.draw_values() method that
@@ -327,7 +326,6 @@ class GaussianTimeSeries(Continuous):
 
         return val
 
-
     def _random(self, noise_shape, point):
         """
         Draw a single random sample the shape for the (Gaussian) noise model
@@ -369,7 +367,7 @@ class GaussianTimeSeries(Continuous):
 
         # add noise model
         x_i_minus_1 = fwd_i_minus_1 + np.random.random(noise_shape) * \
-                           self.sigma
+                      self.sigma
 
         # add the initial value to make the correct final shape
         x_0 = np.array([self.testval[0]])

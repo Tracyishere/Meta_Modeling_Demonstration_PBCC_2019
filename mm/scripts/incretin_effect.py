@@ -56,12 +56,14 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 
 import pymc3 as pm
-from pymc3.variational.callbacks import CheckParametersConvergence
 
 sys.path.append("../..")
 from mm.core import jit, GaussianTimeSeries
 from mm.models import MealModel, SPTModel, NetworkModel, VirtualScreenModel
 from mm.utils import get_distribution, set_start
+
+# random number seed for reproducibility
+RNG = 85431
 
 # I/O locations
 DataDir = os.path.abspath("./datasets")
@@ -70,16 +72,18 @@ HP_FN = os.path.abspath("./default_params.json")
 if not os.path.isdir(OutDir):
     os.mkdir(OutDir)
 
+
 # helper functions to save and load traces
 def _load_trace(prefix, mealmodel_type, conc, zscore):
     fn = prefix + "_%s_%1.1f_%1.1f_trace.pickle" % (mealmodel_type, conc,
                                                     zscore)
     if os.path.isfile(fn):
         with open(fn, "rb") as of:
-            approx, trace = dill.load(of)
+            trace = dill.load(of)
         return trace
     else:
         return None
+
 
 def _save_trace(data, prefix, mealmodel_type, conc, zscore):
     fn = prefix + "_%s_%1.1f_%1.1f_trace.pickle" % (mealmodel_type, conc,
@@ -175,13 +179,10 @@ parser = argparse.ArgumentParser(description="Demonstrate the incretin effect \
                                              for a metamodel built from 4 \
                                              input models: meal, spt, net, vs")
 
-parser.add_argument("-nb", "--nburn", default=50000, type=int,
-                    help="Number of tuning steps for variational inference")
-
 parser.add_argument("-ns", "--nsamples", default=500, type=int,
                     help="number of samples to draw from posterior")
 
-parser.add_argument("-c", "--conc", nargs = "+", default=[0.0], type=_tupletype,
+parser.add_argument("-c", "--conc", nargs="+", default=[0.0], type=_tupletype,
                     help="concentration of incretin hormone (GLP1-analog)")
 
 parser.add_argument("-z", "--zscores", nargs="+", default=[0.0],
@@ -193,7 +194,6 @@ parser.add_argument("-p", "--prefix", default="mm",
                     help="prefix of all output files")
 
 args = parser.parse_args()
-NBurn = args.nburn
 NSamples = args.nsamples
 analog_concs = args.conc[0]
 z_scores = args.zscores[0]
@@ -219,7 +219,7 @@ Idata_normal = normal_data[:, 2]
 Idata_t2d = t2d_data[:, 2]
 
 # set inputs for all models (explicitly set analog conc. to be same at all time)
-inputs={"DGintake": DGintake_data}
+inputs = {"DGintake": DGintake_data}
 
 # set starting points for all models
 start_spt = {"spt_S": set_start(rvname="S", modelname="spt", hpfn=HP_FN),
@@ -232,12 +232,12 @@ start_net = {"net_ATP": set_start(rvname="ATP", modelname="net", hpfn=HP_FN),
              "net_I": set_start(rvname="I", modelname="net", hpfn=HP_FN)}
 
 start_vs = {"vs_analog_conc": set_start(rvname="analog_conc",
-                                          modelname="vs", hpfn=HP_FN),
+                                        modelname="vs", hpfn=HP_FN),
             "vs_GLP1R": set_start(rvname="GLP1R", modelname="vs", hpfn=HP_FN)}
 
 start_meal_normal = {"meal_normal_State": set_start(rvname="State",
-                                               modelname="meal_normal",
-                                               hpfn=HP_FN)}
+                                                    modelname="meal_normal",
+                                                    hpfn=HP_FN)}
 
 start_meal_t2d = {"meal_t2d_State": set_start(rvname="State",
                                               modelname="meal_t2d",
@@ -253,14 +253,13 @@ start_normal = {**start_meal_normal, **start_spt, **start_net, **start_vs,
 start_t2d = {**start_meal_t2d, **start_spt, **start_net, **start_vs,
              **start_meta_t2d}
 
-
 # ------------------
 # META-MODELS
 # ------------------
 tracefn_normal = prefix + "_normal_trace.shelf"
 tracefn_t2d = prefix + "_t2d_trace.shelf"
-tracedict_normal = {} # for plotting later
-tracedict_t2d = {} # for plotting later
+tracedict_normal = {}  # for plotting later
+tracedict_t2d = {}  # for plotting later
 
 ### for each incretin hormone scenario
 for n in range(n_incretins):
@@ -277,19 +276,20 @@ for n in range(n_incretins):
     if data_normal is None:
         # compile model and run training
         this_inputs = {**inputs,
-                       "analog_conc": analog_conc*np.ones(len(tdata)),
+                       "analog_conc": analog_conc * np.ones(len(tdata)),
                        "analog_z_score": z_score}
 
         print(">Compiling meta-model for normal case")
         mm_normal = MetaModel(name="meta", mealmodel_type="normal",
-                      inputs=this_inputs,
-                      start=start_normal,
-                      t=len(tdata), hpfn=HP_FN)
-        print(">Training meta-model for normal case...")
-        approx_normal = pm.fit(model=mm_normal, method="advi", n=NBurn,
-                               callbacks=[CheckParametersConvergence()])
-        trace_normal = approx_normal.sample(draws=NSamples)
-        _save_trace(data=(approx_normal, trace_normal),
+                              inputs=this_inputs,
+                              start=start_normal,
+                              t=len(tdata), hpfn=HP_FN)
+
+        print(">Sampling from meta-model prior for normal case...")
+        trace_normal = pm.sample_prior_predictive(model=mm_normal,
+                                                  samples=NSamples,
+                                                  random_seed=RNG)
+        _save_trace(data=trace_normal,
                     prefix=prefix, mealmodel_type="normal",
                     conc=analog_conc, zscore=z_score)
         tracedict_normal[key] = trace_normal
@@ -297,8 +297,6 @@ for n in range(n_incretins):
         print(">Loading saved trace for normal case...")
         trace_normal = data_normal[-1]
         tracedict_normal[key] = trace_normal
-
-    print("\n")
 
     # T2D CASE
     data_t2d = _load_trace(prefix=prefix, mealmodel_type="t2d",
@@ -311,14 +309,14 @@ for n in range(n_incretins):
 
         print(">Compiling meta-model for t2d case")
         mm_t2d = MetaModel(name="meta", mealmodel_type="t2d",
-                              inputs=this_inputs,
-                              start=start_t2d,
-                              t=len(tdata), hpfn=HP_FN)
-        print(">Training meta-model for t2d case...")
-        approx_t2d = pm.fit(model=mm_t2d, method="advi", n=NBurn,
-                               callbacks=[CheckParametersConvergence()])
-        trace_t2d = approx_t2d.sample(draws=NSamples)
-        _save_trace(data=(approx_t2d, trace_t2d),
+                           inputs=this_inputs,
+                           start=start_t2d,
+                           t=len(tdata), hpfn=HP_FN)
+        print(">Sampling from meta-model prior for t2d case...")
+        trace_t2d = pm.sample_prior_predictive(model=mm_t2d,
+                                               draws=NSamples,
+                                               random_seed=RNG)
+        _save_trace(data=trace_t2d,
                     prefix=prefix, mealmodel_type="t2d",
                     conc=analog_conc, zscore=z_score)
         tracedict_t2d[key] = trace_t2d
@@ -327,15 +325,14 @@ for n in range(n_incretins):
         trace_t2d = data_t2d[-1]
         tracedict_t2d[key] = trace_t2d
 
-
 # -----------
 # PLOT STUFF
 # -----------
-fig = plt.figure(figsize=(10,10))
-ax1 = fig.add_subplot(2,2,1)
-ax2 = fig.add_subplot(2,2,2)
-ax3 = fig.add_subplot(2,2,3)
-ax4 = fig.add_subplot(2,2,4)
+fig = plt.figure(figsize=(10, 10))
+ax1 = fig.add_subplot(2, 2, 1)
+ax2 = fig.add_subplot(2, 2, 2)
+ax3 = fig.add_subplot(2, 2, 3)
+ax4 = fig.add_subplot(2, 2, 4)
 
 for ax in [ax1, ax2, ax3, ax4]:
     if ax == ax1:

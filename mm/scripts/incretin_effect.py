@@ -59,8 +59,9 @@ import pymc3 as pm
 
 sys.path.append("../..")
 from mm.core import jit, GaussianTimeSeries
-from mm.models import MealModel, SPTModel, NetworkModel, VirtualScreenModel
 from mm.utils import get_distribution, set_start
+
+from meta4 import MetaModel
 
 # random number seed for reproducibility
 RNG = 85431
@@ -117,56 +118,11 @@ def _get_prior(model, varname, samples=100, **kwargs):
 
 # helper function to collect generate posterior distributions
 def _get_posterior(trace, varname, **kwargs):
-    if not varname in trace.varnames:
+    if not varname in trace:
         raise ValueError("RV %s not found in model trace" % varname)
     post_samples = trace[varname]
     post = get_distribution(post_samples, **kwargs)
     return post
-
-
-# MBF for the meta-model
-@jit
-def MetaModel(name="meta", t=100,
-              inputs={}, evidence={}, start={},
-              hpfn=None, mealmodel_type="normal"):
-    # call the meal model MBF
-    mealmodel_name = "meal_%s" % mealmodel_type  # normal or t2d
-    meal = MealModel(name=mealmodel_name, t=t, inputs=inputs, evidence=evidence,
-                     start=start, hpfn=hpfn)
-
-    # construct the first coupler (a modified inputs for the spt model)
-    # intracellular glucose ~ 50% of extracellular glucose # assumption
-    spt_inputs = {"G_in": 0.5 * meal.G}
-    inputs.update(spt_inputs)
-
-    # call the spt model MBF and pass in the first coupler
-    spt = SPTModel(name="spt", t=t, inputs=inputs, evidence=evidence,
-                   start=start, hpfn=hpfn)
-
-    # call the vs model MBF
-    vs = VirtualScreenModel(name="vs", t=t, inputs=inputs, evidence=evidence,
-                            start=start, hpfn=hpfn)
-
-    # construct the second coupler (a modified inputs for the network model)
-    # intracellular glucose ~ 50% of extracellular glucose # assumption
-    # GLP1R_ext = GLP1R coming from the vs model
-    net_inputs = {"G_in": 0.5 * meal.G, "GLP1R_ext": vs.GLP1R}
-    inputs.update(net_inputs)
-
-    # call the network model MBF
-    net = NetworkModel(name="net", t=t, inputs=inputs, evidence=evidence,
-                       start=start, hpfn=hpfn)
-
-    # combine (average) the secretions from different models
-    S = pm.Normal("S", mu=(meal.S + spt.S + net.S) / 3., sigma=0.01, shape=t)
-
-    # calculate new plasma insulin concentration from the meta S.
-    # In the meal model: I(t+1) = (1-gamma*dt)*I(t) + S(t)*dt
-    # gamma ~ 0.5 and dt = 2.0. Plugging in these values: I(t+1) ~ 2 *S(t)
-    # This is the form we'll use here.
-    I = GaussianTimeSeries("I", dynamic={"node": S, "timeslices": 0}, static=[],
-                           fwd_model=lambda x: 2 * x, sigma=0.1, t=t)
-
 
 #### MAIN ####
 
@@ -243,9 +199,13 @@ start_meal_t2d = {"meal_t2d_State": set_start(rvname="State",
                                               modelname="meal_t2d",
                                               hpfn=HP_FN)}
 
-start_meta_normal = {"meta_I": start_meal_normal["meal_normal_State"][-1]}
+start_meta_normal = {"meta_normal_State": set_start(rvname="State",
+                                                    modelname="meal_normal",
+                                                    hpfn=HP_FN)}
 
-start_meta_t2d = {"meta_I": start_meal_t2d["meal_t2d_State"][-1]}
+start_meta_t2d = {"meta_t2d_State": set_start(rvname="State",
+                                                    modelname="meal_t2d",
+                                                    hpfn=HP_FN)}
 
 # combine into the over-all starting dicts for normal and t2d
 start_normal = {**start_meal_normal, **start_spt, **start_net, **start_vs,
@@ -271,19 +231,24 @@ for n in range(n_incretins):
     print("-----------------------------------------")
 
     # NORMAL CASE
-    data_normal = _load_trace(prefix=prefix, mealmodel_type="normal",
-                              conc=analog_conc, zscore=z_score)
-    if data_normal is None:
+    trace_normal = _load_trace(prefix=prefix, mealmodel_type="normal",
+                               conc=analog_conc, zscore=z_score)
+    if trace_normal is None:
         # compile model and run training
         this_inputs = {**inputs,
                        "analog_conc": analog_conc * np.ones(len(tdata)),
                        "analog_z_score": z_score}
 
         print(">Compiling meta-model for normal case")
-        mm_normal = MetaModel(name="meta", mealmodel_type="normal",
+        mm_normal = MetaModel(name="meta_normal", mealmodel_type="normal",
                               inputs=this_inputs,
                               start=start_normal,
                               t=len(tdata), hpfn=HP_FN)
+
+
+        pm.model_to_graphviz(mm_normal).render("test")
+        os.remove("test")
+        exit()
 
         print(">Sampling from meta-model prior for normal case...")
         trace_normal = pm.sample_prior_predictive(model=mm_normal,
@@ -295,13 +260,12 @@ for n in range(n_incretins):
         tracedict_normal[key] = trace_normal
     else:
         print(">Loading saved trace for normal case...")
-        trace_normal = data_normal[-1]
         tracedict_normal[key] = trace_normal
 
     # T2D CASE
-    data_t2d = _load_trace(prefix=prefix, mealmodel_type="t2d",
-                           conc=analog_conc, zscore=z_score)
-    if data_t2d is None:
+    trace_t2d = _load_trace(prefix=prefix, mealmodel_type="t2d",
+                            conc=analog_conc, zscore=z_score)
+    if trace_t2d is None:
         # compile model and run training
         this_inputs = {**inputs,
                        "analog_conc": analog_conc * np.ones(len(tdata)),
@@ -314,7 +278,7 @@ for n in range(n_incretins):
                            t=len(tdata), hpfn=HP_FN)
         print(">Sampling from meta-model prior for t2d case...")
         trace_t2d = pm.sample_prior_predictive(model=mm_t2d,
-                                               draws=NSamples,
+                                               samples=NSamples,
                                                random_seed=RNG)
         _save_trace(data=trace_t2d,
                     prefix=prefix, mealmodel_type="t2d",
@@ -322,7 +286,6 @@ for n in range(n_incretins):
         tracedict_t2d[key] = trace_t2d
     else:
         print(">Loading saved trace for t2d case...")
-        trace_t2d = data_t2d[-1]
         tracedict_t2d[key] = trace_t2d
 
 # -----------
@@ -358,6 +321,7 @@ for n in range(n_incretins):
     G, Gerr = _get_posterior(tracedict_normal[key], "meal_normal_G",
                              vartype="dynamic")
     I, Ierr = _get_posterior(tracedict_normal[key], "meta_I", vartype="dynamic")
+
     ax1.plot(tdata, G, "r-", alpha=alphas[n])
     ax3.plot(tdata, I, "g-", alpha=alphas[n])
 
